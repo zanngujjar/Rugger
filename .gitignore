@@ -21,3 +21,6 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db 
+
+# Add to existing .gitignore
+secure-data/ 

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Solana Wallets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        h1 {
+            color: #00ff99;
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        button {
+            padding: 10px;
+            background: #00ff99;
+            border: none;
+            border-radius: 4px;
+            color: #000;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00cc7a;
+        }
+
+        #wallet-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #wallet-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-address {
+            color: #00ff99;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Solana Wallet Manager</h1>
+    <form id="wallet-form">
+        <input type="text" id="wallet-name" placeholder="Wallet Name" required>
+        <input type="text" id="wallet-address" placeholder="Wallet Address" required>
+        <input type="password" id="wallet-private-key" placeholder="Private Key" required>
+        <input type="password" id="encryption-password" placeholder="Encryption Password" required>
+        <button type="submit">Save Wallet</button>
+    </form>
+    <ul id="wallet-list"></ul>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        document.getElementById('wallet-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const name = document.getElementById('wallet-name').value;
+            const address = document.getElementById('wallet-address').value;
+            const privateKey = document.getElementById('wallet-private-key').value;
+            const password = document.getElementById('encryption-password').value;
+
+            try {
+                await window.db.addWallet(name, address, privateKey, password);
+                alert("Wallet stored securely.");
+                event.target.reset();
+                loadWallets();
+            } catch (error) {
+                alert("Error storing wallet: " + error.message);
+            }
+        });
+
+        async function loadWallets() {
+            try {
+                const wallets = await window.db.getWallets();
+                document.getElementById('wallet-list').innerHTML = wallets.map(wallet =>
+                    `<li>
+                        <div>
+                            <strong>${wallet.name}</strong>
+                            <div class="wallet-address">${wallet.address}</div>
+                        </div>
+                        <div>Added: ${new Date(wallet.createdAt).toLocaleString()}</div>
+                    </li>`
+                ).join('');
+            } catch (error) {
+                console.error("Error loading wallets:", error);
+            }
+        }
+
+        // Load wallets when page loads
+        loadWallets();
+    </script>
+</body>
+</html> 
