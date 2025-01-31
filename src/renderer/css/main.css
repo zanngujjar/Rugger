@@ -178,13 +178,20 @@ button:hover {
     gap: 15px;
 }
 
+.wallet-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
 .wallet-card {
     background: #2a2a2a;
     border-radius: 8px;
     padding: 20px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 15px;
     transition: transform 0.2s;
 }
 
@@ -210,6 +217,11 @@ button:hover {
 .wallet-actions {
     display: flex;
     gap: 10px;
+    align-items: center;
+}
+
+.wallet-actions button {
+    min-width: 60px;
 }
 
 .edit-btn, .delete-btn {
@@ -261,6 +273,61 @@ button:hover {
 
 .cancel-btn:hover {
     background: #555;
+}
+
+.notes-section {
+    margin-top: 15px;
+    padding: 15px;
+    background: #333;
+    border-radius: 4px;
+}
+
+.notes-section.hidden {
+    display: none;
+}
+
+.notes-input {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.notes-input textarea {
+    flex: 1;
+    min-height: 60px;
+}
+
+.notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.note-item {
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.note-content {
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+}
+
+.note-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    color: #888;
+}
+
+.notes-btn {
+    background: #666;
+}
+
+.notes-btn:hover {
+    background: #777;
 }
 
 /* ... rest of your CSS ... */ 
