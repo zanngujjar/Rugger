@@ -1,15 +1,266 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
+    margin: 0;
+    padding: 0;
     background: #1a1a1a;
     color: #fff;
+    height: 100vh;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar {
+    width: 250px;
+    background: #2a2a2a;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #333;
+}
+
+.user-info {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#username-display {
+    font-weight: bold;
+    color: #00ff99;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-btn {
+    padding: 12px;
+    background: #333;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: left;
+    transition: background 0.3s;
+}
+
+.nav-btn:hover {
+    background: #444;
+}
+
+.nav-btn.active {
+    background: #00ff99;
+    color: #000;
 }
 
 h1 {
     color: #00ff99;
-    text-align: center;
+    margin-bottom: 30px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+}
+
+input, textarea {
+    padding: 12px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+
+button {
+    padding: 12px;
+    background: #00ff99;
+    border: none;
+    border-radius: 4px;
+    color: #000;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #00cc7a;
+}
+
+#wallet-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 15px;
+}
+
+#wallet-list li {
+    padding: 20px;
+    background: #2a2a2a;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wallet-address {
+    color: #00ff99;
+    font-family: monospace;
+}
+
+.content-section {
+    display: block;
+}
+
+.content-section.hidden {
+    display: none;
+}
+
+#logout-btn {
+    background: #ff4444;
+}
+
+#logout-btn:hover {
+    background: #cc3333;
+}
+
+.notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 800px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.form-row input {
+    flex: 1;
+}
+
+.form-row button {
+    white-space: nowrap;
+}
+
+.wallets-container {
+    margin-top: 20px;
+}
+
+.wallet-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.wallet-card {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.wallet-card:hover {
+    transform: translateY(-2px);
+}
+
+.wallet-info {
+    flex: 1;
+}
+
+.wallet-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.wallet-address {
+    color: #00ff99;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.wallet-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn, .delete-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.delete-btn {
+    background: #ff4444;
+}
+
+.delete-btn:hover {
+    background: #cc3333;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2a2a2a;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.cancel-btn {
+    background: #444;
+}
+
+.cancel-btn:hover {
+    background: #555;
 }
 
 /* ... rest of your CSS ... */ 

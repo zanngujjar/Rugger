@@ -4,122 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Secure Solana Wallets</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #1a1a1a;
-            color: #fff;
-        }
-
-        h1 {
-            color: #00ff99;
-            text-align: center;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        input {
-            padding: 10px;
-            border: 1px solid #333;
-            border-radius: 4px;
-            background: #2a2a2a;
-            color: #fff;
-        }
-
-        button {
-            padding: 10px;
-            background: #00ff99;
-            border: none;
-            border-radius: 4px;
-            color: #000;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        button:hover {
-            background: #00cc7a;
-        }
-
-        #wallet-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        #wallet-list li {
-            padding: 15px;
-            margin-bottom: 10px;
-            background: #2a2a2a;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .wallet-address {
-            color: #00ff99;
-            font-family: monospace;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-    <h1>Solana Wallet Manager</h1>
-    <form id="wallet-form">
-        <input type="text" id="wallet-name" placeholder="Wallet Name" required>
-        <input type="text" id="wallet-address" placeholder="Wallet Address" required>
-        <input type="password" id="wallet-private-key" placeholder="Private Key" required>
-        <input type="password" id="encryption-password" placeholder="Encryption Password" required>
-        <button type="submit">Save Wallet</button>
-    </form>
-    <ul id="wallet-list"></ul>
+    <div class="app-container">
+        <main class="main-content">
+            <div id="wallets-section" class="content-section">
+                <h1>Manage Wallets</h1>
+                <form id="wallet-form" class="add-wallet-form">
+                    <div class="form-row">
+                        <input type="text" id="wallet-name" placeholder="Wallet Name" required>
+                        <input type="text" id="wallet-address" placeholder="Wallet Address" required>
+                        <input type="password" id="wallet-private-key" placeholder="Private Key" required>
+                        <button type="submit">Add Wallet</button>
+                    </div>
+                </form>
 
-    <script>
-        const { ipcRenderer } = require('electron');
+                <div class="wallets-container">
+                    <h2>My Wallets</h2>
+                    <div id="wallet-list" class="wallet-grid"></div>
+                </div>
+            </div>
 
-        document.getElementById('wallet-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
+            <div id="wallet-notes-section" class="content-section hidden">
+                <h1>Wallet Notes</h1>
+                <div class="notes-container">
+                    <textarea id="wallet-notes" placeholder="Add your trading notes here..."></textarea>
+                    <button id="save-notes">Save Notes</button>
+                </div>
+            </div>
+        </main>
 
-            const name = document.getElementById('wallet-name').value;
-            const address = document.getElementById('wallet-address').value;
-            const privateKey = document.getElementById('wallet-private-key').value;
-            const password = document.getElementById('encryption-password').value;
+        <aside class="sidebar">
+            <div class="user-info">
+                <span id="username-display"></span>
+                <button id="logout-btn">Logout</button>
+            </div>
+            <nav>
+                <button class="nav-btn active" data-section="wallets-section">
+                    Wallets
+                </button>
+                <button class="nav-btn" data-section="wallet-notes-section">
+                    Notes
+                </button>
+            </nav>
+        </aside>
+    </div>
 
-            try {
-                await window.db.addWallet(name, address, privateKey, password);
-                alert("Wallet stored securely.");
-                event.target.reset();
-                loadWallets();
-            } catch (error) {
-                alert("Error storing wallet: " + error.message);
-            }
-        });
+    <!-- Edit Wallet Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Wallet</h2>
+            <form id="edit-wallet-form">
+                <input type="hidden" id="edit-wallet-id">
+                <input type="text" id="edit-wallet-name" placeholder="Wallet Name" required>
+                <input type="text" id="edit-wallet-address" placeholder="Wallet Address" required>
+                <div class="modal-buttons">
+                    <button type="submit">Save Changes</button>
+                    <button type="button" class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        async function loadWallets() {
-            try {
-                const wallets = await window.db.getWallets();
-                document.getElementById('wallet-list').innerHTML = wallets.map(wallet =>
-                    `<li>
-                        <div>
-                            <strong>${wallet.name}</strong>
-                            <div class="wallet-address">${wallet.address}</div>
-                        </div>
-                        <div>Added: ${new Date(wallet.createdAt).toLocaleString()}</div>
-                    </li>`
-                ).join('');
-            } catch (error) {
-                console.error("Error loading wallets:", error);
-            }
-        }
-
-        // Load wallets when page loads
-        loadWallets();
-    </script>
+    <script src="../js/index.js"></script>
 </body>
 </html> 
