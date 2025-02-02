@@ -2,18 +2,76 @@ const { ipcRenderer } = require('electron');
 
 // Get username from localStorage
 const username = localStorage.getItem('username');
+if (!username) {
+    console.log('No username found, redirecting to login...');
+    window.location.href = 'login.html';
+}
+
+// Check for master password
+const masterPassword = localStorage.getItem('masterPassword');
+if (!masterPassword) {
+    console.log('No master password found, redirecting to login...');
+    window.location.href = 'login.html';
+}
+
+// Set username display
 document.getElementById('username-display').textContent = username;
+
+// Define window functions first
+window.editWallet = function (id, name, address) {
+    console.log('Starting editWallet:', { id, name, address });
+    document.getElementById('edit-wallet-id').value = id;
+    document.getElementById('edit-wallet-name').value = name;
+    document.getElementById('edit-wallet-address').value = address;
+    document.getElementById('edit-modal').style.display = 'block';
+    console.log('Edit modal opened');
+};
+
+window.closeEditModal = function () {
+    document.getElementById('edit-modal').style.display = 'none';
+};
+
+window.toggleNotes = function (walletId) {
+    console.log('Toggling notes for wallet:', walletId);
+    const notesSection = document.getElementById(`notes-section-${walletId}`);
+    if (!notesSection) {
+        console.error('Notes section not found for wallet:', walletId);
+        return;
+    }
+
+    const isHidden = notesSection.classList.contains('hidden');
+
+    // Hide all notes sections first
+    document.querySelectorAll('.notes-section').forEach(section => {
+        section.classList.add('hidden');
+    });
+
+    if (isHidden) {
+        notesSection.classList.remove('hidden');
+        loadNotes(walletId);
+    }
+};
+
+// Helper functions
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 // Navigation
 document.querySelectorAll('.nav-btn').forEach(button => {
     button.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
-        
+
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.add('hidden');
         });
-        
+
         const sectionId = button.dataset.section;
         document.getElementById(sectionId).classList.remove('hidden');
     });
@@ -30,11 +88,11 @@ document.getElementById('wallet-form').addEventListener('submit', async (event) 
 
     try {
         console.log('Adding new wallet...');
-        await ipcRenderer.invoke('db:addWallet', { 
+        await ipcRenderer.invoke('db:addWallet', {
             username,
-            name, 
+            name,
             address,
-            password: masterPassword 
+            password: masterPassword
         });
         console.log('Wallet added successfully');
         event.target.reset();
@@ -60,9 +118,15 @@ async function loadWallets() {
         console.log('Fetching wallets from database...');
         const wallets = await ipcRenderer.invoke('db:getWallets', username, masterPassword);
         const walletList = document.getElementById('wallet-list');
-        
+
         if (!walletList) {
             console.error("Wallet list element not found");
+            return;
+        }
+
+        if (!wallets || wallets.length === 0) {
+            console.log('No wallets found');
+            walletList.innerHTML = '<div class="no-wallets">No wallets found. Add your first wallet above.</div>';
             return;
         }
 
@@ -102,13 +166,17 @@ async function loadWallets() {
 
     } catch (error) {
         console.error("Error in loadWallets:", error);
+        const walletList = document.getElementById('wallet-list');
+        if (walletList) {
+            walletList.innerHTML = '<div class="error-message">Error loading wallets. Please try again.</div>';
+        }
     }
 }
 
 // Separate function to attach event listeners
 function attachWalletEventListeners() {
     console.log('Starting attachWalletEventListeners...');
-    
+
     // Edit buttons
     const editButtons = document.querySelectorAll('.edit-btn');
     console.log(`Found ${editButtons.length} edit buttons`);
@@ -116,7 +184,7 @@ function attachWalletEventListeners() {
         button.addEventListener('click', (e) => {
             console.log('Edit button clicked:', e.target.dataset);
             const { id, name, address } = e.target.dataset;
-            editWallet(id, name, address);
+            window.editWallet(id, name, address);
         });
     });
 
@@ -140,7 +208,7 @@ function attachWalletEventListeners() {
             console.log('Notes button clicked:', e.target.dataset);
             e.stopPropagation();
             const id = e.target.dataset.id;
-            toggleNotes(id);
+            window.toggleNotes(id);
         });
     });
 
@@ -155,20 +223,6 @@ function attachWalletEventListeners() {
 
     console.log('Event listeners attached successfully');
 }
-
-// Edit wallet functionality
-window.editWallet = function(id, name, address) {
-    console.log('Starting editWallet:', { id, name, address });
-    document.getElementById('edit-wallet-id').value = id;
-    document.getElementById('edit-wallet-name').value = name;
-    document.getElementById('edit-wallet-address').value = address;
-    document.getElementById('edit-modal').style.display = 'block';
-    console.log('Edit modal opened');
-};
-
-window.closeEditModal = function() {
-    document.getElementById('edit-modal').style.display = 'none';
-};
 
 // Update the edit wallet submission
 document.getElementById('edit-wallet-form').addEventListener('submit', async (event) => {
@@ -240,13 +294,6 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     window.location.href = 'login.html';
 });
 
-// Save notes functionality
-document.getElementById('save-notes').addEventListener('click', () => {
-    const notes = document.getElementById('wallet-notes').value;
-    // TODO: Implement notes saving functionality
-    alert('Notes saved!');
-});
-
 // Add these functions to handle notes
 
 async function addNote(walletId) {
@@ -268,58 +315,99 @@ async function addNote(walletId) {
     }
 }
 
+// Update the loadNotes function to include better error handling and formatting
 async function loadNotes(walletId) {
     try {
         const masterPassword = localStorage.getItem('masterPassword');
         const notes = await ipcRenderer.invoke('db:getNotes', username, walletId, masterPassword);
-        
+
         const notesHtml = notes.map(note => `
             <div class="note-item">
-                <div class="note-content">${note.note}</div>
+                <div class="note-content">${escapeHtml(note.note)}</div>
                 <div class="note-meta">
                     <span>${new Date(note.createdAt).toLocaleString()}</span>
-                    <button onclick="deleteNote('${note.id}')" class="delete-btn">Delete</button>
+                    <button onclick="deleteNote('${note.id}', '${walletId}')" class="delete-btn">Delete</button>
                 </div>
             </div>
         `).join('');
 
-        document.getElementById(`notes-${walletId}`).innerHTML = notesHtml;
+        const notesContainer = document.getElementById(`notes-${walletId}`);
+        if (notesContainer) {
+            notesContainer.innerHTML = notesHtml;
+        }
     } catch (error) {
         console.error("Error loading notes:", error);
+        const notesContainer = document.getElementById(`notes-${walletId}`);
+        if (notesContainer) {
+            notesContainer.innerHTML = '<div class="error-message">Error loading notes. Please try again.</div>';
+        }
     }
 }
 
-async function deleteNote(noteId) {
+// Update deleteNote to include walletId for automatic refresh
+async function deleteNote(noteId, walletId) {
     if (!confirm('Are you sure you want to delete this note?')) return;
 
     try {
         const masterPassword = localStorage.getItem('masterPassword');
         await ipcRenderer.invoke('db:deleteNote', noteId, username, masterPassword);
-        // Reload notes for the current wallet
-        const walletId = document.querySelector('.wallet-notes.active')?.dataset.walletId;
-        if (walletId) {
-            loadNotes(walletId);
-        }
+        // Reload notes for the specific wallet
+        await loadNotes(walletId);
     } catch (error) {
+        console.error("Error deleting note:", error);
         alert("Error deleting note: " + error.message);
     }
 }
 
-// Add toggle function for notes
-window.toggleNotes = function(walletId) {
-    const notesSection = document.getElementById(`notes-section-${walletId}`);
-    const isHidden = notesSection.classList.contains('hidden');
-    
-    // Hide all notes sections first
-    document.querySelectorAll('.notes-section').forEach(section => {
-        section.classList.add('hidden');
-    });
-
-    if (isHidden) {
-        notesSection.classList.remove('hidden');
-        loadNotes(walletId);
+// Add some CSS for the new messages
+const style = document.createElement('style');
+style.textContent = `
+    .no-wallets {
+        text-align: center;
+        padding: 20px;
+        color: #888;
+        background: #2a2a2a;
+        border-radius: 8px;
+        margin-top: 20px;
     }
-};
+`;
+document.head.appendChild(style);
 
-// Initial load
-loadWallets(); 
+// Instead, add this initialization function at the top of the file after the imports
+async function initializeApp() {
+    console.log('Initializing app...');
+    try {
+        // Check credentials
+        const username = localStorage.getItem('username');
+        const masterPassword = localStorage.getItem('masterPassword');
+
+        if (!username || !masterPassword) {
+            console.log('Missing credentials, redirecting to login...');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Set username display
+        const usernameDisplay = document.getElementById('username-display');
+        if (usernameDisplay) {
+            usernameDisplay.textContent = username;
+        }
+
+        // Wait for DOM to be fully loaded
+        if (document.readyState === 'loading') {
+            console.log('Waiting for DOM to load...');
+            await new Promise(resolve => {
+                document.addEventListener('DOMContentLoaded', resolve);
+            });
+        }
+
+        console.log('DOM is ready, loading wallets...');
+        await loadWallets();
+
+    } catch (error) {
+        console.error('Error during app initialization:', error);
+    }
+}
+
+// Call initialization
+initializeApp(); 

@@ -80,7 +80,8 @@ form {
     max-width: 500px;
 }
 
-input, textarea {
+input,
+textarea {
     padding: 12px;
     border: 1px solid #333;
     border-radius: 4px;
@@ -224,7 +225,8 @@ button:hover {
     min-width: 60px;
 }
 
-.edit-btn, .delete-btn {
+.edit-btn,
+.delete-btn {
     padding: 8px 12px;
     font-size: 14px;
 }
@@ -280,10 +282,12 @@ button:hover {
     padding: 15px;
     background: #333;
     border-radius: 4px;
+    transition: all 0.3s ease;
 }
 
 .notes-section.hidden {
     display: none;
+    opacity: 0;
 }
 
 .notes-input {
@@ -295,18 +299,30 @@ button:hover {
 .notes-input textarea {
     flex: 1;
     min-height: 60px;
+    padding: 10px;
+    border: 1px solid #444;
+}
+
+.note-item {
+    background: #2a2a2a;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    border-left: 3px solid #00ff99;
+}
+
+.error-message {
+    color: #ff4444;
+    padding: 10px;
+    background: rgba(255, 68, 68, 0.1);
+    border-radius: 4px;
+    margin: 10px 0;
 }
 
 .notes-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
-}
-
-.note-item {
-    background: #2a2a2a;
-    padding: 10px;
-    border-radius: 4px;
 }
 
 .note-content {
@@ -330,4 +346,4 @@ button:hover {
     background: #777;
 }
 
-/* ... rest of your CSS ... */ 
+/* ... rest of your CSS ... */

@@ -32,7 +32,7 @@ class SecureDatabase {
             // Initialize database with default data
             const adapter = new JSONFile(this.dbPath);
             this.db = new Low(adapter, this.defaultData);
-            
+
             // Read existing data
             await this.db.read();
 
@@ -44,7 +44,7 @@ class SecureDatabase {
 
             // Write back to ensure structure
             await this.db.write();
-            
+
             console.log('Database initialized successfully');
         } catch (error) {
             console.error('Error initializing database:', error);
@@ -63,9 +63,9 @@ class SecureDatabase {
             throw new Error('Username already exists');
         }
 
-        const salt = CryptoJS.lib.WordArray.random(128/8);
+        const salt = CryptoJS.lib.WordArray.random(128 / 8);
         const hashedPassword = CryptoJS.PBKDF2(password, salt, {
-            keySize: 256/32,
+            keySize: 256 / 32,
             iterations: 10000
         }).toString();
 
@@ -85,9 +85,9 @@ class SecureDatabase {
         const user = this.db.data.users.find(u => u.username === username);
         if (!user) return false;
 
-        const hashedAttempt = CryptoJS.PBKDF2(password, 
+        const hashedAttempt = CryptoJS.PBKDF2(password,
             CryptoJS.enc.Hex.parse(user.salt), {
-            keySize: 256/32,
+            keySize: 256 / 32,
             iterations: 10000
         }).toString();
 
@@ -121,7 +121,7 @@ class SecureDatabase {
     encryptWalletData(data, password, salt) {
         // Create a unique key for wallet encryption using user's password and salt
         const encryptionKey = CryptoJS.PBKDF2(password, salt, {
-            keySize: 256/32,
+            keySize: 256 / 32,
             iterations: 5000
         }).toString();
 
@@ -131,7 +131,7 @@ class SecureDatabase {
     decryptWalletData(encryptedData, password, salt) {
         try {
             const encryptionKey = CryptoJS.PBKDF2(password, salt, {
-                keySize: 256/32,
+                keySize: 256 / 32,
                 iterations: 5000
             }).toString();
 
@@ -145,14 +145,20 @@ class SecureDatabase {
 
     async addWallet(data) {
         const { username, name, address, password } = data;
-        
+
         if (!await this.verifyPassword(username, password)) {
             throw new Error("Invalid master password");
         }
 
         await this.db.read();
         const userCreds = await this.getUserSaltAndHash(username);
-        
+
+        // Check for duplicate wallet names for this user
+        const userWallets = await this.getWallets(username, password);
+        if (userWallets.some(wallet => wallet.name.toLowerCase() === name.toLowerCase())) {
+            throw new Error("A wallet with this name already exists");
+        }
+
         // Prepare wallet data
         const walletData = {
             name,
@@ -162,7 +168,7 @@ class SecureDatabase {
 
         // Encrypt wallet data
         const encryptedData = this.encryptWalletData(walletData, password, userCreds.salt);
-        
+
         this.db.data.wallets.push({
             id: Date.now(),
             username,
@@ -178,11 +184,11 @@ class SecureDatabase {
         if (!userCreds) return [];
 
         const userWallets = this.db.data.wallets.filter(w => w.username === username);
-        
+
         return userWallets.map(wallet => {
             const decryptedData = this.decryptWalletData(
-                wallet.data, 
-                password, 
+                wallet.data,
+                password,
                 userCreds.salt
             );
 
@@ -201,7 +207,17 @@ class SecureDatabase {
         const { id, username, name, address, password } = data;
         await this.db.read();
         const userCreds = await this.getUserSaltAndHash(username);
-        
+
+        // Check for duplicate names, excluding the current wallet
+        const userWallets = await this.getWallets(username, password);
+        const hasDuplicate = userWallets.some(wallet =>
+            wallet.name.toLowerCase() === name.toLowerCase() && wallet.id !== id
+        );
+
+        if (hasDuplicate) {
+            throw new Error("A wallet with this name already exists");
+        }
+
         const index = this.db.data.wallets.findIndex(
             w => w.id === id && w.username === username
         );
@@ -239,10 +255,10 @@ class SecureDatabase {
         }
 
         await this.db.read();
-        
+
         // Get user credentials for potential note deletion
         const userCreds = await this.getUserSaltAndHash(username);
-        
+
         // Delete the wallet
         this.db.data.wallets = this.db.data.wallets.filter(
             w => !(w.id === parseInt(id) && w.username === username)
@@ -260,7 +276,7 @@ class SecureDatabase {
 
     async getWalletPrivateKey(id, password) {
         await this.db.read()
-        
+
         const wallet = this.db.data.wallets.find(w => w.id === id);
         if (!wallet) return null;
 
@@ -269,14 +285,14 @@ class SecureDatabase {
 
     async addNote(data) {
         const { username, walletId, note, password } = data;
-        
+
         if (!await this.verifyPassword(username, password)) {
             throw new Error("Invalid master password");
         }
 
         await this.db.read();
         const userCreds = await this.getUserSaltAndHash(username);
-        
+
         // Prepare note data
         const noteData = {
             id: Date.now(),
@@ -286,7 +302,7 @@ class SecureDatabase {
 
         // Encrypt note data
         const encryptedData = this.encryptWalletData(noteData, password, userCreds.salt);
-        
+
         // Initialize notes array if it doesn't exist
         if (!this.db.data.notes) {
             this.db.data.notes = [];
@@ -317,11 +333,11 @@ class SecureDatabase {
         const userNotes = this.db.data.notes.filter(
             n => n.username === username && n.walletId === walletId
         );
-        
+
         return userNotes.map(note => {
             const decryptedData = this.decryptWalletData(
-                note.data, 
-                password, 
+                note.data,
+                password,
                 userCreds.salt
             );
 
